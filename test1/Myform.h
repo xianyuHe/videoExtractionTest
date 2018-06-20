@@ -25,6 +25,7 @@ namespace face
 
 	WCHAR wpFileName[200];
 
+
 	public ref class Form1 : public System::Windows::Forms::Form
 	{
 	public:
@@ -50,7 +51,9 @@ namespace face
 			//picture box
 			this->pictureBox = (gcnew System::Windows::Forms::PictureBox());
 			pictureBox->Location = Point(266, 16);
-			pictureBox->Size = System::Drawing::Size(500, 500);
+			pictureBox->Size = System::Drawing::Size(200, 150);
+			//pictureBox->Image = Image::FromFile(L"C:\\Users\\75612\\Pictures\\Saved Pictures\\rename.png");
+
 
 			this->openFileDialog = (gcnew System::Windows::Forms::OpenFileDialog());
 			//button
@@ -82,9 +85,9 @@ namespace face
 		long crt_num;
 		double block_num;
 		COMPRESSEDPIC *pCompressedPic;
-		/*BYTE* pYBuff;
+		BYTE* pYBuff;
 		BYTE* pCbBuff;
-		BYTE* pCrBuff;*/
+		BYTE* pCrBuff;
 		int i;
 		int i_number;
 
@@ -131,12 +134,12 @@ namespace face
 
 
 
-		System::Drawing::Bitmap^ bitmap1  = gcnew System::Drawing::Bitmap((int)(wYPicWidth), (int)(wYPicHeight),
+		System::Drawing::Bitmap^ bitmap1 = gcnew System::Drawing::Bitmap((int)(wYPicWidth), (int)(wYPicHeight),
 			System::Drawing::Imaging::PixelFormat::Format24bppRgb);
 
-		/*	pYBuff = new BYTE[wYPicWidth*wYPicHeight*4];
+		pYBuff = new BYTE[wYPicWidth*wYPicHeight*4];
 		pCrBuff = new BYTE[wYPicWidth*wYPicHeight];
-		pCbBuff = new BYTE[wYPicWidth*wYPicHeight];*/
+		pCbBuff = new BYTE[wYPicWidth*wYPicHeight];
 
 		pCompressedPic = MpvDecoder.PrepareCompressedPic();
 
@@ -149,6 +152,7 @@ namespace face
 			{0.125, 0.176, 0.125, 0.0625, 0.0625, 0.0625, 0.125, -0.176, -0.125}.
 			{0.125, 0.06, -0.125, 0.0625, 0, -0.0625, -0.125, -0.0625, }
 		}*/
+		//重构第零帧
 		for (i = 0; i < (int)(lastnum - 1); i++)
 		{
 
@@ -160,9 +164,8 @@ namespace face
 
 			if (type1 == I_TYPE)
 			{
-				//只extract了一个block???
 				int j;
-				
+
 				System::Drawing::Rectangle^ rect2 = gcnew System::Drawing::Rectangle(0, 0, (int)wYPicWidth, (int)wYPicHeight);
 
 				System::Drawing::Imaging::BitmapData^ bmData = bitmap1->LockBits(
@@ -172,56 +175,16 @@ namespace face
 
 
 				int m_stride = bmData->Stride;
-				//m_scan0只是bitmap的第一行
 				int m_scan0 = bmData->Scan0.ToInt32();
-
-				BYTE* p = (BYTE*)(void*)m_scan0;
-				BYTE* pYBuff = new BYTE[wYPicWidth*wYPicHeight * 4];
-				BYTE* pCbBuff = new BYTE[wYPicWidth*wYPicHeight];
-				BYTE* pCrBuff = new BYTE[wYPicWidth*wYPicHeight];
-				BYTE* pRGBBuff = new BYTE[wYPicWidth*wYPicHeight * 12];
-
-				/*
-				//全都只读了第一行的？？？
-				for(j = 0; j < wYPicWidth*wYPicHeight*4; j++)
-								{
-									pYBuff[j] = (BYTE) (pCompressedPic->pshYDCTBlock[j][0]>>3)+128;
-								}
-
-								for(j=0; j<wYPicWidth*wYPicHeight;j++)
-								{
-									pCbBuff[j] = (BYTE)(pCompressedPic->pshCbDCTBlock[j][0]>>3)+128;
-									pCrBuff[j] = (BYTE)(pCompressedPic->pshCrDCTBlock[j][0]>>3)+128;
-								}
-
-								conv.YV12_to_RGB24(pYBuff,pCbBuff,pCrBuff,pRGBBuff,wYPicWidth*2,wYPicHeight*2);
-
-
-								int k;
-								BYTE* q;
-								q = pRGBBuff + wYPicWidth*6*(wYPicHeight*2-1);
-								
-								for(j = 0; j < wYPicHeight*2; j++)
-								{
-									for(k = 0; k<wYPicWidth*2; k++)
-									{
-									   p[0] = q[k*3];
-									   p[1] = q[k*3+1];
-									   p[2] = q[k*3+2];
-									   p = p + 3;
-									
-									}
-									q = q - wYPicWidth*6;
-								} 				
 				
-				*/
-
+					
 				//YDCT block
 				DCTBLOCK *C = pCompressedPic->pshYDCTBlock;
 				ABBlocks AB;
 				assignBlock(C, AB);
+				for(int i = 0; i < 4; i++){}
 				pYBuff[0] = (BYTE)(((AB.A1 + AB.A3) >> 3) + ((AB.B3 + AB.B1 + AB.C11) >> 3) + ((AB.B3 + AB.B1 + AB.C11) >> 5));
-				pYBuff[1] = (BYTE)(((AB.A2 + AB.A4) >> 3) + (AB.B2 >> 3) +(AB.B2 >> 5) + (AB.B3 >> 4) + (AB.C11 >> 4));
+				pYBuff[1] = (BYTE)(((AB.A2 + AB.A4) >> 3) + (AB.B2 >> 3) + (AB.B2 >> 5) + (AB.B3 >> 4) + (AB.C11 >> 4));
 				pYBuff[2] = (BYTE)(((AB.A2 + AB.A4) >> 3) - (AB.B2 >> 3) + (AB.B2 >> 5) + (AB.B3 >> 4) - (AB.C11 >> 4));
 				pYBuff[3] = (BYTE)(((AB.A1 + AB.A3) >> 3) - ((AB.B3 - AB.B1) >> 4) - (AB.C11 >> 4));
 				pYBuff[4] = (BYTE)(((AB.A1 - AB.A3) >> 3) + (AB.B3 >> 3) + (AB.B3 >> 5) + (AB.B1 >> 4) + (AB.C11 >> 4));
@@ -284,6 +247,8 @@ namespace face
 
 
 
+				//}
+
 				bitmap1->UnlockBits(bmData);
 				this->pictureBox->Image = bitmap1;
 				this->pictureBox->Update();
@@ -296,21 +261,25 @@ namespace face
 			}
 
 		}
+		
+
 		MpvDecoder.FreeCompressedPic();
 	}
 
 	void assignBlock(DCTBLOCK * C, ABBlocks& AB)
 	{
-		AB.A1 = C[0][0] + C[2][0];
-		AB.A2 = C[0][0] - C[2][0];
-		AB.A3 = C[0][2] + C[0][2];
-		AB.A4 = C[0][2] - C[0][2];
-		AB.B1 = C[0][1] + C[2][1];
-		AB.B2 = C[0][1] - C[2][1];
-		AB.B3 = C[1][0] + C[1][2];
-		AB.B4 = C[1][0] - C[1][2];
-		AB.C11 = C[1][1];
+
+		AB.A1 = C[0][0] + C[0][16];
+		AB.A2 = C[0][0] - C[0][16];
+		AB.A3 = C[0][2] + C[0][18];
+		AB.A4 = C[0][2] - C[0][18];
+		AB.B1 = C[0][1] + C[0][17];
+		AB.B2 = C[0][1] - C[0][17];
+		AB.B3 = C[0][1] + C[0][10];
+		AB.B4 = C[0][1] - C[0][10];
+		AB.C11 = C[0][9];
 	}
 	};
+
 
 }
